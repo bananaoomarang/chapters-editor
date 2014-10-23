@@ -1,0 +1,15 @@
+{
+  "name": "chapters-editor",
+  "version": "0.0.0",
+  "description": "Embeddable markdown editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify -d index.js -o bundle.js"
+  },
+  "author": "Milo Mordaunt",
+  "license": "MIT",
+  "dependencies": {
+    "marked": "^0.3.2"
+  }
+}

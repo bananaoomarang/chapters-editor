@@ -1,0 +1,13 @@
+{
+  "libs": [
+    "browser",
+    "underscore",
+    "jquery",
+    "ember"
+  ],
+  "plugins": {
+    "node": {
+
+    }
+  }
+}
