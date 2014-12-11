@@ -2,17 +2,30 @@
 
 var marked = require('marked');
 var Paragraph = require('./Paragraph');
+var Toolbar = require('./Toolbar');
 
-function Editor(el) {
-  this.id = 'editor';
-  this.html = '<div id=' + this.id + '></div>';
+var HTML = [
+  '<div id="editor">',
+    '<div class="paragraphs">',
+    '</div>',
+  '</div>'
+].join('\n');
+
+function Editor(el, id) {
+  this.id = id || 'editor';
   
+  this.$editor = $(HTML);
+  this.$editor.attr('id', this.id);
   this.appendSelfTo(el);
 
+  this.toolbar = new Toolbar();
+  this.$editor.prepend(this.toolbar.getHTML());
+
   this.currentParagraph = null;
-  this.$self = $('#' + this.id);
+  this.$paragraphs = $('#' + this.id + ' .paragraphs');
 
   this.paragraphs = [];
+
 
   this.bindUI();
   this.bindKeys();
@@ -24,7 +37,7 @@ Editor.prototype.render = function() {
   var self = this;
 
   this.paragraphs.forEach(function renderParagraph(p, index) {
-    var child = $(self.$self.children()[index]);
+    var child = $(self.$paragraphs.children()[index]);
 
     if(p.dirty && child) {
       var $parsed = $(p.parsed);
@@ -64,7 +77,7 @@ Editor.prototype.appendParagraph = function() {
 
   var pDOM = $('<p contentEditable="true"></p>');
 
-  this.$self.append(pDOM);
+  this.$paragraphs.append(pDOM);
   this.bindParagraph(pDOM, p);
 
   pDOM.focus();
@@ -124,9 +137,11 @@ Editor.prototype.bindKeys = function() {
               .focus()
               .caret($previousParagraph.html().length);
           }
+
+          return false;
         }
 
-        return false;
+        return true;
     }
   });
 };
@@ -154,20 +169,20 @@ Editor.prototype.bindUI = function() {
   var self = this;
 
   $('.btn[name=left]').click(function alignLeft() {
-    self.setAlignment(self.$self, 'left');
+    self.setAlignment(self.$paragraphs, 'left');
   });
 
   $('.btn[name=center]').click(function alignCenter() {
-    self.setAlignment(self.$self, 'center');
+    self.setAlignment(self.$paragraphs, 'center');
   });
 
   $('.btn[name=right]').click(function alignRight() {
-    self.setAlignment(self.$self, 'right');
+    self.setAlignment(self.$paragraphs, 'right');
   });
 };
 
 Editor.prototype.appendSelfTo = function(element) {
-  $(element).append(this.html);
+  $(element).append(this.$editor);
 };
 
 module.exports = Editor;
