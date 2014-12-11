@@ -4,12 +4,17 @@
   "description": "Embeddable markdown editor",
   "main": "index.js",
   "scripts": {
+    "start": "browserify -d index.js -o bundle.js && serve -p 1337",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify -d index.js -o bundle.js"
   },
   "author": "Milo Mordaunt",
   "license": "MIT",
   "dependencies": {
+    "dropzone": "^3.8.4",
     "marked": "^0.3.2"
+  },
+  "devDependencies": {
+    "node-static": "^0.7.6"
   }
 }

@@ -1,0 +1,19 @@
+body {
+  padding: 20px;
+}
+
+.btn {
+  display: inline;
+}
+
+#editor {
+  /* Editor defaults */
+  text-align: center;
+  font-family: 'Crimson Text';
+
+  p {
+    outline: none;
+    margin: 0px 20px;
+  }
+}
+
