@@ -21,11 +21,9 @@ function Editor(el, id) {
   this.toolbar = new Toolbar();
   this.$editor.prepend(this.toolbar.getHTML());
 
-  this.currentParagraph = null;
   this.$paragraphs = $('#' + this.id + ' .paragraphs');
 
   this.paragraphs = [];
-
 
   this.bindUI();
   this.bindKeys();
@@ -41,13 +39,12 @@ Editor.prototype.render = function() {
 
     if(p.dirty && child) {
       var $parsed = $(p.parsed);
-      $parsed.attr('contentEditable', true);
+      $parsed.attr('contenteditable', true);
       self.bindParagraph($parsed, p);
 
       child.replaceWith($parsed);
     }
   });
-
 };
 
 Editor.prototype.markify = function(element) {
@@ -70,12 +67,10 @@ Editor.prototype.demarkify = function(element) {
 };
 
 Editor.prototype.appendParagraph = function() {
-  var self = this;
-
   var p = new Paragraph();
   this.paragraphs.push(p);
 
-  var pDOM = $('<p contentEditable="true"></p>');
+  var pDOM = $('<p contenteditable="true"></p>');
 
   this.$paragraphs.append(pDOM);
   this.bindParagraph(pDOM, p);
@@ -86,7 +81,6 @@ Editor.prototype.appendParagraph = function() {
 };
 
 Editor.prototype.setAlignment = function($paragraph, alignment) {
-  console.log($paragraph);
   $paragraph.css('text-align', alignment);
 };
 
@@ -104,9 +98,7 @@ Editor.prototype.bindKeys = function() {
   var DOWN = 40;
 
   $(document).keydown(function onKeyDown(event) {
-
-    var $currentParagraph = $(self.currentParagraph);
-    var caretPos = $currentParagraph.caret();
+    var $currentParagraph = $(document.activeElement);
     var $nextParagraph = $currentParagraph.next();
     var $previousParagraph = $currentParagraph.prev();
 
@@ -114,34 +106,40 @@ Editor.prototype.bindKeys = function() {
       case ENTER:
         // move to/create next paragraph
         if($nextParagraph.length) {
-          $nextParagraph.focus();
+          $nextParagraph.caret(0);
         } else {
           self.appendParagraph();
         }
 
         return false;
       case UP:
-        $previousParagraph.focus().caret(caretPos);
-
         return false;
       case DOWN:
-        $nextParagraph.focus().caret(caretPos);
-
         return false;
       case BACKSPACE:
-        // Edit previous paragraph when pressed on empty one
+
+        // Block backspace from causing an actual <- in the browser
+        if((event.target.getAttribute('contenteditable') &&
+           $(event.target).caret() === 0) || event.target.disabled || event.target.readOnly) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
         if($currentParagraph.caret() === 0) {
 
           if($previousParagraph.length) {
+
             $previousParagraph
               .focus()
-              .caret($previousParagraph.html().length);
+              .text( $previousParagraph.text() + $currentParagraph.text() )
+              .caret($previousParagraph.text().length);
+
+            event.preventDefault();
+            event.stopPropagation();
+
           }
 
-          return false;
         }
-
-        return true;
     }
   });
 };
@@ -159,8 +157,11 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
     }
   })
   .focus(function onParagraphFocus() {
-    self.currentParagraph = this;
+    // Go one child deeper if we need to, avoid loosing tag-based styling
+    var children = pDOM.children();
+    if(children.length === 1) pDOM = $(children[0]);
 
+    // Replace inner text with unparsed for editing
     pDOM.text(p.unparsed);
   });
 };

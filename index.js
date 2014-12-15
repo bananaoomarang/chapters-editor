@@ -3,5 +3,5 @@
 var Editor = require('./Editor');
 
 $(document).ready(function() {
-  var editor = new Editor('body');
+  var editor = window.editor = new Editor('body');
 });
