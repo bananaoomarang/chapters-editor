@@ -2,7 +2,8 @@
 
 var marked = require('marked');
 
-function Paragraph() {
+function Paragraph(el) {
+  this.dom = el;
   this.unparsed = '';
   this.parsed   = '';
   this.dirty = false;

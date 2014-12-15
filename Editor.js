@@ -47,25 +47,6 @@ Editor.prototype.render = function() {
   });
 };
 
-Editor.prototype.markify = function(element) {
-  var $element = $(element);
-  var markedHTML = marked($element.html());
-
-  // Store unparsed string
-  $element
-    .data('unmarked', $element.html());
-
-  // Replace inner HTML
-  $element
-    .html(markedHTML);
-};
-
-Editor.prototype.demarkify = function(element) {
-  var $this = $(element);
-
-  $this.html($this.data('unmarked'));
-};
-
 Editor.prototype.appendParagraph = function() {
   var p = new Paragraph();
   this.paragraphs.push(p);
@@ -78,6 +59,21 @@ Editor.prototype.appendParagraph = function() {
   pDOM.focus();
 
   return pDOM;
+};
+
+Editor.prototype.newLine = function($el) {
+  var index = $el.index() + 1;
+  var p = new Paragraph();
+  var pDOM = $('<p contenteditable="true"></p>');
+
+  // Insert new paragraph into internal array
+  this.paragraphs.splice(index, 0, p);
+
+  // Insert DOM representation
+  pDOM.insertAfter($el);
+  this.bindParagraph(pDOM, p);
+
+  pDOM.focus();
 };
 
 Editor.prototype.setAlignment = function($paragraph, alignment) {
@@ -101,12 +97,13 @@ Editor.prototype.bindKeys = function() {
     var $currentParagraph = $(document.activeElement);
     var $nextParagraph = $currentParagraph.next();
     var $previousParagraph = $currentParagraph.prev();
+    var currentIndex = $currentParagraph.index();
 
     switch(event.which) {
       case ENTER:
         // move to/create next paragraph
         if($nextParagraph.length) {
-          $nextParagraph.caret(0);
+          self.newLine($currentParagraph);
         } else {
           self.appendParagraph();
         }
@@ -125,19 +122,32 @@ Editor.prototype.bindKeys = function() {
           event.stopPropagation();
         }
 
-        if($currentParagraph.caret() === 0) {
+        if($currentParagraph.text().length === 0) {
+          
+          // Remove the current, empty paragraph
+          $currentParagraph.remove();
+          self.paragraphs.splice(currentIndex, 1);
 
-          if($previousParagraph.length) {
+          $previousParagraph
+            .focus()
+            .caret( $previousParagraph.text().length );
+        }
 
-            $previousParagraph
-              .focus()
-              .text( $previousParagraph.text() + $currentParagraph.text() )
-              .caret($previousParagraph.text().length);
+        if($previousParagraph.text().length &&
+           $currentParagraph.caret() === 0) {
 
-            event.preventDefault();
-            event.stopPropagation();
+          // Remove this paragraph and copy the text to the above
+          $previousParagraph
+            .focus()
+            .caret($previousParagraph.text().length);
 
-          }
+          $previousParagraph.text( $previousParagraph.text() + $currentParagraph.text() );
+
+          $currentParagraph.remove();
+          self.paragraphs.splice(currentIndex, 1);
+
+          event.preventDefault();
+          event.stopPropagation();
 
         }
     }
