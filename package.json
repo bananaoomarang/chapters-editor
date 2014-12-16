@@ -15,6 +15,14 @@
     "marked": "^0.3.2"
   },
   "devDependencies": {
-    "node-static": "^0.7.6"
+    "browser-sync": "^1.8.0",
+    "browserify": "^7.0.2",
+    "gulp": "^3.8.10",
+    "gulp-sass": "^1.2.4",
+    "gulp-sourcemaps": "^1.2.8",
+    "gulp-util": "^3.0.1",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.0.0",
+    "watchify": "^2.2.1"
   }
 }

@@ -1,6 +1,5 @@
 'use strict';
 
-var marked = require('marked');
 var Paragraph = require('./Paragraph');
 var Toolbar = require('./Toolbar');
 
@@ -13,7 +12,7 @@ var HTML = [
 
 function Editor(el, id) {
   this.id = id || 'editor';
-  
+
   this.$editor = $(HTML);
   this.$editor.attr('id', this.id);
   this.appendSelfTo(el);
@@ -131,6 +130,7 @@ Editor.prototype.bindKeys = function() {
           $previousParagraph
             .focus()
             .caret( $previousParagraph.text().length );
+
         }
 
         if($previousParagraph.text().length &&
