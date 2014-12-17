@@ -182,6 +182,8 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
   .blur(function onParagraphBlur() {
     var newStr = pDOM.text();
 
+    console.log(newStr);
+
     if (newStr) {
       p.update(newStr);
       self.render();
@@ -189,11 +191,20 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
   })
   .focus(function onParagraphFocus() {
     // Go one child deeper if we need to, avoid loosing tag-based styling
+    var childOfMine;
     var children = pDOM.children();
-    if (children.length === 1) pDOM = $(children[0]);
+
+    if (children.length === 1) childOfMine = $(children[0]);
 
     // Replace inner text with unparsed for editing
-    if (p.unparsed !== '') pDOM.text(p.unparsed);
+    if (p.unparsed !== '') {
+
+      if (childOfMine) 
+        childOfMine.text(p.unparsed);
+      else 
+        pDOM.text(p.unparsed);
+
+    }
   });
 };
 
