@@ -81,7 +81,7 @@ Editor.prototype.newLine = function($el) {
   pDOM.insertAfter($el);
   this.bindParagraph(pDOM, p);
 
-  pDOM.focus();
+  return pDOM;
 };
 
 Editor.prototype.setAlignment = function($paragraph, alignment) {
@@ -107,14 +107,29 @@ Editor.prototype.bindKeys = function() {
     var $nextParagraph = $($currentParagraph.next());
     var $previousParagraph = $($currentParagraph.prev());
     var currentIndex = $currentParagraph.index();
+    var caretPosition = $currentParagraph.caret();
 
     switch(event.which) {
       case ENTER:
-        // move to/create next paragraph
-        if ($nextParagraph.length) {
-          self.newLine($currentParagraph);
+        $nextParagraph = self.newLine($currentParagraph);
+
+        // If there's text to the right of the cursor, move it.
+        // Otherwise just focus the new paragraph
+
+        if (caretPosition < $currentParagraph.text().length) {
+
+          $nextParagraph
+            .text( $currentParagraph.text().slice(caretPosition) );
+
+          $currentParagraph
+            .text( $currentParagraph.text().slice(0, caretPosition) );
+
+          $nextParagraph.focus();
+
         } else {
-          self.appendParagraph();
+
+          $nextParagraph.focus();
+
         }
 
         return false;
@@ -181,8 +196,6 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
   pDOM
   .blur(function onParagraphBlur() {
     var newStr = pDOM.text();
-
-    console.log(newStr);
 
     if (newStr) {
       p.update(newStr);
