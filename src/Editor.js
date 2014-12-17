@@ -1,19 +1,24 @@
 'use strict';
 
+var Dropzone = require('dropzone');
 var Paragraph = require('./Paragraph');
 var Toolbar = require('./Toolbar');
 
-var HTML = [
+var EDITOR_HTML = [
   '<div id="editor">',
     '<div class="paragraphs">',
     '</div>',
   '</div>'
 ].join('\n');
 
+var NEW_PARA_HTML = [
+  '<p contenteditable="true">&nbsp;</p>' // Blank Space necessary hack for firefox caret alignment
+].join('\n');
+
 function Editor(el, id) {
   this.id = id || 'editor';
 
-  this.$editor = $(HTML);
+  this.$editor = $(EDITOR_HTML);
   this.$editor.attr('id', this.id);
   this.appendSelfTo(el);
 
@@ -27,6 +32,10 @@ function Editor(el, id) {
   this.bindUI();
   this.bindKeys();
   this.appendParagraph();
+
+  this.dropzone = new Dropzone('div#editor', { 
+    url: '/file/post' 
+  });
 }
 
 // Load the data from our memeory into the DOM
@@ -50,7 +59,7 @@ Editor.prototype.appendParagraph = function() {
   var p = new Paragraph();
   this.paragraphs.push(p);
 
-  var pDOM = $('<p contenteditable="true"></p>');
+  var pDOM = $(NEW_PARA_HTML);
 
   this.$paragraphs.append(pDOM);
   this.bindParagraph(pDOM, p);
@@ -63,7 +72,7 @@ Editor.prototype.appendParagraph = function() {
 Editor.prototype.newLine = function($el) {
   var index = $el.index() + 1;
   var p = new Paragraph();
-  var pDOM = $('<p contenteditable="true"></p>');
+  var pDOM = $(NEW_PARA_HTML);
 
   // Insert new paragraph into internal array
   this.paragraphs.splice(index, 0, p);
@@ -80,6 +89,7 @@ Editor.prototype.setAlignment = function($paragraph, alignment) {
 };
 
 Editor.prototype.loadFromFile = function() {
+  //TODO
 };
 
 Editor.prototype.bindKeys = function() {
@@ -159,7 +169,7 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
 
   pDOM
   .blur(function onParagraphBlur() {
-    var newStr = pDOM.html();
+    var newStr = pDOM.text();
 
     if(newStr) {
       p.update(newStr);
@@ -172,7 +182,7 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
     if(children.length === 1) pDOM = $(children[0]);
 
     // Replace inner text with unparsed for editing
-    pDOM.text(p.unparsed);
+    if(p.unparsed !== '') pDOM.text(p.unparsed);
   });
 };
 

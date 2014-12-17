@@ -21,6 +21,7 @@ h1, h2, h3, h4, h5 {
   #toolbar {
     .btn {
       @include button;
+      height: 2em;
       width: 4em;
       padding: 0.2em;
       margin-bottom: 1em;
