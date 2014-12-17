@@ -45,7 +45,7 @@ Editor.prototype.render = function() {
   this.paragraphs.forEach(function renderParagraph(p, index) {
     var child = $(self.$paragraphs.children()[index]);
 
-    if(p.dirty && child) {
+    if (p.dirty && child) {
       var $parsed = $(p.parsed);
       $parsed.attr('contenteditable', true);
       self.bindParagraph($parsed, p);
@@ -104,14 +104,14 @@ Editor.prototype.bindKeys = function() {
 
   $(document).keydown(function onKeyDown(event) {
     var $currentParagraph = $(document.activeElement);
-    var $nextParagraph = $currentParagraph.next();
-    var $previousParagraph = $currentParagraph.prev();
+    var $nextParagraph = $($currentParagraph.next());
+    var $previousParagraph = $($currentParagraph.prev());
     var currentIndex = $currentParagraph.index();
 
     switch(event.which) {
       case ENTER:
         // move to/create next paragraph
-        if($nextParagraph.length) {
+        if ($nextParagraph.length) {
           self.newLine($currentParagraph);
         } else {
           self.appendParagraph();
@@ -125,42 +125,53 @@ Editor.prototype.bindKeys = function() {
       case BACKSPACE:
 
         // Block backspace from causing an actual <- in the browser
-        if((event.target.getAttribute('contenteditable') &&
+        if ( (event.target.getAttribute('contenteditable') &&
            $(event.target).caret() === 0) || event.target.disabled || event.target.readOnly) {
           event.preventDefault();
           event.stopPropagation();
         }
 
-        if($currentParagraph.text().length === 0) {
-          
-          // Remove the current, empty paragraph
-          $currentParagraph.remove();
-          self.paragraphs.splice(currentIndex, 1);
-
-          $previousParagraph
-            .focus()
-            .caret( $previousParagraph.text().length );
-
-        }
-
-        if($previousParagraph.text().length &&
+        if ($previousParagraph.text().length &&
            $currentParagraph.caret() === 0) {
 
           // Remove this paragraph and copy the text to the above
-          $previousParagraph
-            .focus()
-            .caret($previousParagraph.text().length);
-
-          $previousParagraph.text( $previousParagraph.text() + $currentParagraph.text() );
-
           $currentParagraph.remove();
           self.paragraphs.splice(currentIndex, 1);
+
+          $previousParagraph.focus();
+
+          var newPosition = $previousParagraph.text().length;
+
+          // Move the caret on the next tick, otherwise it doesn't work
+          setTimeout(function moveCaret() {
+            $previousParagraph.caret(newPosition);
+          });
+
+          if($currentParagraph.html() !== '&nbsp;') $previousParagraph.text( $previousParagraph.text() + $currentParagraph.text() );
 
           event.preventDefault();
           event.stopPropagation();
 
         }
+
+        return true;
+      case LEFT:
+        return true;
+      case RIGHT:
+        return true;
+      default:
+        // Remove hacky whitespace, keep firefox happy
+        if ($currentParagraph.html() === '&nbsp;') $currentParagraph.html('');
+        return true;
     }
+  });
+
+  $(document).keyup(function onKeyUp(event) {
+    // Replace hacky whitespace if a non-symbol-making key was pressed
+    // (building a whitelist seemed *more* likely to break, this is glitchy but works)
+    var $currentParagraph = $(document.activeElement);
+
+    if ($currentParagraph.text().length === 0 && event.which !== BACKSPACE) $currentParagraph.html('&nbsp;');
   });
 };
 
@@ -171,7 +182,7 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
   .blur(function onParagraphBlur() {
     var newStr = pDOM.text();
 
-    if(newStr) {
+    if (newStr) {
       p.update(newStr);
       self.render();
     }
@@ -179,10 +190,10 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
   .focus(function onParagraphFocus() {
     // Go one child deeper if we need to, avoid loosing tag-based styling
     var children = pDOM.children();
-    if(children.length === 1) pDOM = $(children[0]);
+    if (children.length === 1) pDOM = $(children[0]);
 
     // Replace inner text with unparsed for editing
-    if(p.unparsed !== '') pDOM.text(p.unparsed);
+    if (p.unparsed !== '') pDOM.text(p.unparsed);
   });
 };
 

@@ -12,6 +12,8 @@ function Paragraph(el) {
 Paragraph.prototype.update = function(str) {
   if(!str) console.error('Please supply a string.');
 
+  str = str.trim();
+
   this.unparsed = str;
   this.parsed = marked(str);
 
