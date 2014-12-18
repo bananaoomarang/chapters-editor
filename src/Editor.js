@@ -43,10 +43,11 @@ Editor.prototype.render = function() {
   var self = this;
 
   this.paragraphs.forEach(function renderParagraph(p, index) {
-    var child = $(self.$paragraphs.children()[index]);
+    var child = $( self.$paragraphs.children()[index] );
 
     if (p.dirty && child) {
       var $parsed = $(p.parsed);
+
       $parsed.attr('contenteditable', true);
       self.bindParagraph($parsed, p);
 
@@ -141,13 +142,17 @@ Editor.prototype.bindKeys = function() {
 
         // Block backspace from causing an actual <- in the browser
         if ( (event.target.getAttribute('contenteditable') &&
-           $(event.target).caret() === 0) || event.target.disabled || event.target.readOnly) {
+             caretPosition === 0) || event.target.disabled || event.target.readOnly) {
+
           event.preventDefault();
           event.stopPropagation();
+
         }
 
-        if ($previousParagraph.text().length &&
-           $currentParagraph.caret() === 0) {
+        if (caretPosition === 0) {
+
+          // If there isn't a paragraph above (ie, we're the first, gtfo/do bugger all)
+          if(currentIndex === 0) return true;
 
           // Remove this paragraph and copy the text to the above
           $currentParagraph.remove();
@@ -155,14 +160,31 @@ Editor.prototype.bindKeys = function() {
 
           $previousParagraph.focus();
 
+          // Make sure there's never actually nothing in the tag. Browsers don't like that shit...
+          if($currentParagraph.html() === '&nbsp;' &&
+             $previousParagraph.text().length > 0) {
+
+            $currentParagraph.html('');
+
+          } else if($previousParagraph.text().length === 0) {
+
+            $currentParagraph.html('&nbsp;');
+
+          }
+
           var newPosition = $previousParagraph.text().length;
 
-          // Move the caret on the next tick, otherwise it doesn't work
-          setTimeout(function moveCaret() {
-            $previousParagraph.caret(newPosition);
-          });
+          $previousParagraph.text( $previousParagraph.text() + $currentParagraph.text() );
 
-          if($currentParagraph.html() !== '&nbsp;') $previousParagraph.text( $previousParagraph.text() + $currentParagraph.text() );
+          if($previousParagraph.html() !== '&nbsp;') {
+
+            // Move the caret on the next tick, otherwise it doesn't work
+
+            setTimeout(function moveCaret() {
+              $previousParagraph.caret(newPosition);
+            });
+
+          }
 
           event.preventDefault();
           event.stopPropagation();
@@ -175,8 +197,9 @@ Editor.prototype.bindKeys = function() {
       case RIGHT:
         return true;
       default:
-        // Remove hacky whitespace, keep firefox happy
+        // Remove hacky whitespace on first input, will be replaced on keyup if nothing's here
         if ($currentParagraph.html() === '&nbsp;') $currentParagraph.html('');
+
         return true;
     }
   });
@@ -197,8 +220,8 @@ Editor.prototype.bindParagraph = function(pDOM, p) {
   .blur(function onParagraphBlur() {
     var newStr = pDOM.text();
 
-    if (newStr) {
-      p.update(newStr);
+    if(newStr) {
+      p.update( newStr );
       self.render();
     }
   })

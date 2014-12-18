@@ -10,7 +10,7 @@ function Paragraph(el) {
 }
 
 Paragraph.prototype.update = function(str) {
-  if(!str) console.error('Please supply a string.');
+  if(typeof str !== 'string') return console.error('Please supply a string.');
 
   str = str.trim();
 
