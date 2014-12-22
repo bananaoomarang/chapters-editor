@@ -110,6 +110,8 @@ Editor.prototype.bindKeys = function() {
     var currentIndex = $currentParagraph.index();
     var caretPosition = $currentParagraph.caret();
 
+    if($currentParagraph.prop('tagName') === 'INPUT') return true;
+
     switch(event.which) {
       case ENTER:
         $nextParagraph = self.newLine($currentParagraph);
@@ -257,6 +259,10 @@ Editor.prototype.bindUI = function() {
 
   $('.btn[name=right]').click(function alignRight() {
     self.setAlignment(self.$paragraphs, 'right');
+  });
+
+  $('input[name=font-size]').change(function setFontSize() {
+    self.$paragraphs.css('font-size', this.value + 'px');
   });
 };
 
