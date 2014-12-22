@@ -19,13 +19,21 @@ h1, h2, h3, h4, h5 {
   }
 
   #toolbar {
-    .btn {
-      @include button;
+    .btn, input {
+      text-align: center;
+      margin-bottom: 1em;
       height: 2em;
       width: 4em;
-      padding: 0.2em;
-      margin-bottom: 1em;
     }
+
+    .btn {
+      @include button;
+      padding: 0.2em;
+    }
+  }
+
+  #paragraphs {
+    font-size: 24px;
   }
 }
 
