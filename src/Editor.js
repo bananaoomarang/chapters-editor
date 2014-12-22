@@ -38,51 +38,47 @@ function Editor(el, id) {
   });
 }
 
-// Load the data from our memeory into the DOM
 Editor.prototype.render = function() {
   var self = this;
 
   this.paragraphs.forEach(function renderParagraph(p, index) {
     var child = $( self.$paragraphs.children()[index] );
 
-    if (p.dirty && child) {
+    if (child && p.parsed) {
       var $parsed = $(p.parsed);
 
       $parsed.attr('contenteditable', true);
-      self.bindParagraph($parsed, p);
+      p.rebind($parsed);
 
       child.replaceWith($parsed);
+
+      $parsed.focus();
     }
   });
 };
 
 Editor.prototype.appendParagraph = function() {
-  var p = new Paragraph();
+  var p = new Paragraph( $(NEW_PARA_HTML) );
   this.paragraphs.push(p);
 
-  var pDOM = $(NEW_PARA_HTML);
+  this.$paragraphs.append(p.$el);
 
-  this.$paragraphs.append(pDOM);
-  this.bindParagraph(pDOM, p);
+  p.$el.focus();
 
-  pDOM.focus();
-
-  return pDOM;
+  return p.$el;
 };
 
 Editor.prototype.newLine = function($el) {
   var index = $el.index() + 1;
-  var p = new Paragraph();
-  var pDOM = $(NEW_PARA_HTML);
+  var p = new Paragraph( $(NEW_PARA_HTML) );
 
   // Insert new paragraph into internal array
   this.paragraphs.splice(index, 0, p);
 
   // Insert DOM representation
-  pDOM.insertAfter($el);
-  this.bindParagraph(pDOM, p);
+  p.$el.insertAfter($el);
 
-  return pDOM;
+  return p.$el;
 };
 
 Editor.prototype.setAlignment = function($paragraph, alignment) {
@@ -104,6 +100,8 @@ Editor.prototype.bindKeys = function() {
   var DOWN = 40;
 
   $(document).keydown(function onKeyDown(event) {
+
+
     var $currentParagraph = $(document.activeElement);
     var $nextParagraph = $($currentParagraph.next());
     var $previousParagraph = $($currentParagraph.prev());
@@ -202,45 +200,21 @@ Editor.prototype.bindKeys = function() {
 
         return true;
     }
+
+
   });
 
   $(document).keyup(function onKeyUp(event) {
+    var $currentParagraph = $(document.activeElement);
+    var currentIndex = $currentParagraph.index();
+
     // Replace hacky whitespace if a non-symbol-making key was pressed
     // (building a whitelist seemed *more* likely to break, this is glitchy but works)
-    var $currentParagraph = $(document.activeElement);
-
     if ($currentParagraph.text().length === 0 && event.which !== BACKSPACE) $currentParagraph.html('&nbsp;');
-  });
-};
 
-Editor.prototype.bindParagraph = function(pDOM, p) {
-  var self = this;
-
-  pDOM
-  .blur(function onParagraphBlur() {
-    var newStr = pDOM.text();
-
-    if(newStr) {
-      p.update( newStr );
-      self.render();
-    }
-  })
-  .focus(function onParagraphFocus() {
-    // Go one child deeper if we need to, avoid loosing tag-based styling
-    var childOfMine;
-    var children = pDOM.children();
-
-    if (children.length === 1) childOfMine = $(children[0]);
-
-    // Replace inner text with unparsed for editing
-    if (p.unparsed !== '') {
-
-      if (childOfMine) 
-        childOfMine.text(p.unparsed);
-      else 
-        pDOM.text(p.unparsed);
-
-    }
+    // Update if need be
+    var p = self.paragraphs[currentIndex];
+    if(p && $currentParagraph.text().trim()) p.update($currentParagraph.text());
   });
 };
 
