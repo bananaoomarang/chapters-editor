@@ -30,7 +30,7 @@ function Editor(el, id) {
 
   this.bindUI();
   this.bindKeys();
-  this.appendParagraph();
+  this.newLine().focus();
 }
 
 Editor.prototype.render = function() {
@@ -52,28 +52,30 @@ Editor.prototype.render = function() {
   });
 };
 
-Editor.prototype.appendParagraph = function() {
+Editor.prototype.newLine = function(paragraphAbove) {
   var p = new Paragraph( $(NEW_PARA_HTML) );
-  this.paragraphs.push(p);
+  var index;
 
-  this.$paragraphs.append(p.$el);
+  if(!paragraphAbove) {
 
-  p.$el.focus();
+    // Then just append a paragraph
 
-  return p.$el;
-};
+    this.paragraphs.push(p);
+    this.$paragraphs.append(p.$el);
 
-Editor.prototype.newLine = function($el) {
-  var index = $el.index() + 1;
-  var p = new Paragraph( $(NEW_PARA_HTML) );
+  } else {
 
-  // Insert new paragraph into internal array
-  this.paragraphs.splice(index, 0, p);
+    index = paragraphAbove.$el.index() + 1;
 
-  // Insert DOM representation
-  p.$el.insertAfter($el);
+    // Insert new paragraph into internal array
+    this.paragraphs.splice(index, 0, p);
 
-  return p.$el;
+    // Insert DOM representation
+    p.$el.insertAfter(paragraphAbove.$el);
+
+  }
+
+  return p;
 };
 
 Editor.prototype.setAlignment = function($paragraph, alignment) {
@@ -94,37 +96,33 @@ Editor.prototype.bindKeys = function() {
 
   $(document).keydown(function onKeyDown(event) {
 
+    var currentIndex      = $(document.activeElement).index();
+    var currentParagraph  = self.paragraphs[currentIndex];
+    var nextParagraph     = self.paragraphs[currentIndex + 1];
+    var previousParagraph = self.paragraphs[currentIndex - 1];
 
-    var $currentParagraph = $(document.activeElement);
-    var $nextParagraph = $($currentParagraph.next());
-    var $previousParagraph = $($currentParagraph.prev());
-    var currentIndex = $currentParagraph.index();
-    var caretPosition = $currentParagraph.caret();
+    if(!currentParagraph) return true;
 
-    if($currentParagraph.prop('tagName') === 'INPUT') return true;
+    var caretPosition = currentParagraph.$el.caret();
+
+    // Ignore the toolbar
+    if(currentParagraph.$el.prop('tagName') === 'INPUT') return true;
 
     switch(event.which) {
       case ENTER:
-        $nextParagraph = self.newLine($currentParagraph);
+        nextParagraph = self.newLine(currentParagraph);
 
         // If there's text to the right of the cursor, move it.
-        // Otherwise just focus the new paragraph
 
-        if (caretPosition < $currentParagraph.text().length) {
+        if (caretPosition < currentParagraph.unparsed.length) {
 
-          $nextParagraph
-            .text( $currentParagraph.text().slice(caretPosition) );
+          nextParagraph.unparsed = currentParagraph.unparsed.slice(caretPosition);
 
-          $currentParagraph
-            .text( $currentParagraph.text().slice(0, caretPosition) );
-
-          $nextParagraph.focus();
-
-        } else {
-
-          $nextParagraph.focus();
+          currentParagraph.slice(0, caretPosition);
 
         }
+
+        nextParagraph.focus();
 
         return false;
       case UP:
@@ -147,35 +145,31 @@ Editor.prototype.bindKeys = function() {
           // If there isn't a paragraph above (ie, we're the first, gtfo/do bugger all)
           if(currentIndex === 0) return true;
 
-          // Remove this paragraph and copy the text to the above
-          $currentParagraph.remove();
+          // Otherwise Remove this paragraph and copy the text to the above
+          currentParagraph.$el.remove();
           self.paragraphs.splice(currentIndex, 1);
 
-          $previousParagraph.focus();
+          previousParagraph.focus();
 
-          // Make sure there's never actually nothing in the tag. Browsers don't like that shit...
-          if($currentParagraph.html() === '&nbsp;' &&
-             $previousParagraph.text().length > 0) {
+          // Make sure there's never actually nothing in the tag. Browsers *cough* Firefox *cough* don't like that shit...
+          if(currentParagraph.$el.html() === '&nbsp;' &&
+             previousParagraph.$el.text().length > 0) {
 
-            $currentParagraph.html('');
+            currentParagraph.$el.html('');
 
-          } else if($previousParagraph.text().length === 0) {
+          } else if(previousParagraph.$el.text().length === 0) {
 
-            $currentParagraph.html('&nbsp;');
+            currentParagraph.$el.html('&nbsp;');
 
           }
 
-          var newPosition = $previousParagraph.text().length;
+          var newPosition = previousParagraph.$el.text().length;
 
-          $previousParagraph.text( $previousParagraph.text() + $currentParagraph.text() );
+          previousParagraph.$el.text( previousParagraph.$el.text() + currentParagraph.$el.text() );
 
-          if($previousParagraph.html() !== '&nbsp;') {
+          if(previousParagraph.$el.html() !== '&nbsp;') {
 
-            // Move the caret on the next tick, otherwise it doesn't work
-
-            setTimeout(function moveCaret() {
-              $previousParagraph.caret(newPosition);
-            });
+            previousParagraph.$el.caret(newPosition);
 
           }
 
@@ -190,12 +184,8 @@ Editor.prototype.bindKeys = function() {
       case RIGHT:
         return true;
       default:
-        // Remove hacky whitespace on first input, will be replaced on keyup if nothing's here
-        if ($currentParagraph.html() === '&nbsp;') $currentParagraph.html('');
-
         return true;
     }
-
 
   });
 
@@ -220,7 +210,7 @@ Editor.prototype.bindKeys = function() {
     // Replace hacky whitespace if another non-symbol-placing key was pressed
     if ($currentParagraph.text().length === 0) $currentParagraph.html('&nbsp;');
 
-    // Update if need be
+    // Inject back from DOM
     var p = self.paragraphs[currentIndex];
     if(p && $currentParagraph.text().trim()) p.update($currentParagraph.text());
   });

@@ -11,6 +11,8 @@ function Paragraph($el) {
 
   this.unparsed = '';
   this.parsed   = '';
+
+  this.focused = false;
 }
 
 Paragraph.prototype.bind = function() {
@@ -19,10 +21,16 @@ Paragraph.prototype.bind = function() {
   this.$el
     .focus(function onParagraphFocus() {
 
-      self.$el.text(self.unparsed);
+      self.focused = true;
+
+      var isntJustWhitespace = (self.unparsed.trim().length !== 0);
+
+      if(isntJustWhitespace)self.$el.text(self.unparsed);
 
     })
     .blur(function onParagraphBlur() {
+
+      self.focused = false;
 
       self.$el.html( $(self.parsed).html() );
 
@@ -50,6 +58,27 @@ Paragraph.prototype.update = function(str) {
   this.rebind($newEl);
 
   this.$el.focus().caret(caretPos);
+};
+
+// String slice alias
+Paragraph.prototype.slice = function(a, b) {
+  var stringToSlice = this.focused ? this.unparsed : this.parsed;
+
+  if(b) {
+    this.$el.text( 
+        stringToSlice.slice(a, b)
+    );
+  } else {
+    this.$el.text( 
+        stringToSlice.slice(a)
+    );
+  }
+
+};
+
+// Convenience JQuery alias
+Paragraph.prototype.focus = function() {
+  this.$el.focus();
 };
 
 module.exports = Paragraph;
