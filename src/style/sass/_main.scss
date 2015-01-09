@@ -10,6 +10,11 @@ h1, h2, h3, h4, h5 {
 
 
 #editor {
+  /* Make sure to play nice with container */
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+
   /* Editor defaults */
   text-align: center;
   font-family: 'Crimson Text';
@@ -30,6 +35,10 @@ h1, h2, h3, h4, h5 {
     .btn {
       @include button;
       padding: 0.2em;
+      outline: none;
+    }
+
+    ul, ol {
     }
   }
 

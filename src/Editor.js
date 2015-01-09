@@ -1,6 +1,5 @@
 'use strict';
 
-var Dropzone = require('dropzone');
 var Paragraph = require('./Paragraph');
 var Toolbar = require('./Toolbar');
 
@@ -32,10 +31,6 @@ function Editor(el, id) {
   this.bindUI();
   this.bindKeys();
   this.appendParagraph();
-
-  this.dropzone = new Dropzone('div#editor', { 
-    url: '/file/post' 
-  });
 }
 
 Editor.prototype.render = function() {
@@ -85,10 +80,6 @@ Editor.prototype.setAlignment = function($paragraph, alignment) {
   $paragraph.css('text-align', alignment);
 };
 
-Editor.prototype.loadFromFile = function() {
-  //TODO
-};
-
 Editor.prototype.bindKeys = function() {
   var self = this;
 
@@ -98,6 +89,8 @@ Editor.prototype.bindKeys = function() {
   var RIGHT = 39;
   var UP = 38;
   var DOWN = 40;
+  var SHIFT = 16;
+  var CONTROL = 17;
 
   $(document).keydown(function onKeyDown(event) {
 
@@ -210,9 +203,22 @@ Editor.prototype.bindKeys = function() {
     var $currentParagraph = $(document.activeElement);
     var currentIndex = $currentParagraph.index();
 
-    // Replace hacky whitespace if a non-symbol-making key was pressed
-    // (building a whitelist seemed *more* likely to break, this is glitchy but works)
-    if ($currentParagraph.text().length === 0 && event.which !== BACKSPACE) $currentParagraph.html('&nbsp;');
+    // Blacklist of keys to ignore
+    switch(event.which) {
+      case ENTER:
+        return true;
+      case LEFT:
+        return true;
+      case RIGHT:
+        return true;
+      case SHIFT:
+        return true;
+      case CONTROL:
+        return true;
+    }
+
+    // Replace hacky whitespace if another non-symbol-placing key was pressed
+    if ($currentParagraph.text().length === 0) $currentParagraph.html('&nbsp;');
 
     // Update if need be
     var p = self.paragraphs[currentIndex];
