@@ -2,22 +2,12 @@
 
 var Paragraph = require('./Paragraph');
 var Toolbar = require('./Toolbar');
-
-var EDITOR_HTML = [
-  '<div id="editor">',
-    '<div class="paragraphs">',
-    '</div>',
-  '</div>'
-].join('\n');
-
-var NEW_PARA_HTML = [
-  '<p contenteditable="true">&nbsp;</p>' // Blank Space necessary hack for firefox caret alignment
-].join('\n');
+var getHTML = require('./htmlSnippets.js');
 
 function Editor(el, id) {
   this.id = id || 'editor';
 
-  this.$editor = $(EDITOR_HTML);
+  this.$editor = $( getHTML('editor-base') );
   this.$editor.attr('id', this.id);
   this.appendSelfTo(el);
 
@@ -53,7 +43,7 @@ Editor.prototype.render = function() {
 };
 
 Editor.prototype.newLine = function(paragraphAbove) {
-  var p = new Paragraph( $(NEW_PARA_HTML) );
+  var p = new Paragraph( $( getHTML('new-paragraph') ) );
   var index;
 
   if(!paragraphAbove) {
@@ -126,8 +116,10 @@ Editor.prototype.bindKeys = function() {
 
         return false;
       case UP:
+        if(previousParagraph) previousParagraph.focus();
         return false;
       case DOWN:
+        if(nextParagraph) nextParagraph.focus();
         return false;
       case BACKSPACE:
 
@@ -155,9 +147,12 @@ Editor.prototype.bindKeys = function() {
           if(currentParagraph.$el.html() === '&nbsp;' &&
              previousParagraph.$el.text().length > 0) {
 
+            event.preventDefault();
+            event.stopPropagation();
+
             currentParagraph.$el.html('');
 
-          } else if(previousParagraph.$el.text().length === 0) {
+          } else if (previousParagraph.$el.text().length === 0) {
 
             currentParagraph.$el.html('&nbsp;');
 
@@ -212,7 +207,7 @@ Editor.prototype.bindKeys = function() {
 
     // Inject back from DOM
     var p = self.paragraphs[currentIndex];
-    if(p && $currentParagraph.text().trim()) p.update($currentParagraph.text());
+    if(p && $currentParagraph.text()) p.update($currentParagraph.text());
   });
 };
 
@@ -238,6 +233,10 @@ Editor.prototype.bindUI = function() {
 
 Editor.prototype.appendSelfTo = function(element) {
   $(element).append(this.$editor);
+};
+
+Editor.prototype.focus = function() {
+  this.paragraphs[0].focus();
 };
 
 module.exports = Editor;
