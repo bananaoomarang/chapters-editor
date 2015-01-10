@@ -138,8 +138,7 @@ Editor.prototype.bindKeys = function() {
           if(currentIndex === 0) return true;
 
           // Otherwise Remove this paragraph and copy the text to the above
-          currentParagraph.$el.remove();
-          self.paragraphs.splice(currentIndex, 1);
+          self.removeParagraph(currentIndex);
 
           previousParagraph.focus();
 
@@ -237,6 +236,12 @@ Editor.prototype.appendSelfTo = function(element) {
 
 Editor.prototype.focus = function() {
   this.paragraphs[0].focus();
+};
+
+Editor.prototype.removeParagraph = function(index) {
+  // Remove element from DOM and delete from internal array
+  this.paragraphs[index].$el.remove();
+  this.paragraphs.splice(index, 1);
 };
 
 module.exports = Editor;

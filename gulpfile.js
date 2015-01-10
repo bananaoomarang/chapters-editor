@@ -17,7 +17,14 @@ var paths = {
   demoSource: ['demo/public/index.html', 'demo/public/bundle.js', 'demo/public/style/css/*.css']
 };
 
-var bundler = watchify(browserify('./src/index.js', watchify.args));
+var watchifyArgs = {
+  cache: {}, 
+  packageCache: {}, 
+  fullPaths: true,
+  debug: true
+};
+
+var bundler = watchify(browserify('./src/index.js', watchifyArgs));
 
 function compileJS() {
   return bundler.bundle()
