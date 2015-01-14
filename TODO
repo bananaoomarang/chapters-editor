@@ -2,13 +2,17 @@ Editor:
 
 * align paragraphs with headers (left/right)
 * Allow local alignment/figure out selection
-* Implement up/down
+* Implement up/down (this is harder than it sounds...)
 * Properly style toolbar
 * Help with indentation
 * Firefox is completely fucked again
 * Maybe work on escaping HTML tags, or just leave them as a cheeky easter egg for fun people
 * Fix lists
+* Fix Focus/Font size Changing
 * Think about whitespace/tabs
+* Add Different Fonts
+* Add/fix ordinary shortcuts
+* Paste events
 
 More broadly:
 

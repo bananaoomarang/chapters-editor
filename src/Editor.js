@@ -23,25 +23,6 @@ function Editor(el, id) {
   this.newLine().focus();
 }
 
-Editor.prototype.render = function() {
-  var self = this;
-
-  this.paragraphs.forEach(function renderParagraph(p, index) {
-    var child = $( self.$paragraphs.children()[index] );
-
-    if (child && p.parsed) {
-      var $parsed = $(p.parsed);
-
-      $parsed.attr('contenteditable', true);
-      p.rebind($parsed);
-
-      child.replaceWith($parsed);
-
-      $parsed.focus();
-    }
-  });
-};
-
 Editor.prototype.newLine = function(paragraphAbove) {
   var p = new Paragraph( $( getHTML('new-paragraph') ) );
   var index;
