@@ -1,5 +1,6 @@
 node_modules
 bundle.js
+dist
 .sass-cache
 **.css
 **.map

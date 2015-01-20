@@ -34,7 +34,7 @@ function compileJS() {
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true}))
     .pipe(sourcemaps.write('./')) 
-    .pipe(gulp.dest('./demo/public'));
+    .pipe(gulp.dest('dist'));
 }
 
 gulp.task('js', compileJS);
@@ -44,7 +44,12 @@ gulp.task('sass', function compileSass() {
   gulp.src('./src/style/sass/*.scss')
     .pipe(sass())
     .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('demo/public/style/css'));
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('copy', function copyDist () {
+  gulp.src('dist/*')
+    .pipe(gulp.dest('demo/public'));
 });
 
 gulp.task('serve', function serveDemo() {
@@ -59,6 +64,13 @@ gulp.task('watch', function watchFiles() {
   gulp.watch(paths.js, ['js']);
   gulp.watch(paths.sass, ['sass']);
   gulp.watch(paths.demoSource, reload);
-})
+});
 
-gulp.task('default', ['js', 'sass', 'serve', 'watch']);
+gulp.task('default', function spitHelp (done) {
+  console.log('Possible tasks: \'build\', \'dev\'');
+
+  return done();
+});
+
+gulp.task('build', ['js', 'sass']);
+gulp.task('dev', ['js', 'sass', 'copy', 'serve', 'watch']);
