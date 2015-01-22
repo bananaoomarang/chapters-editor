@@ -47,7 +47,7 @@ gulp.task('sass', function compileSass() {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('copy', function copyDist () {
+gulp.task('copyDist', function copyDist () {
   gulp.src('dist/*')
     .pipe(gulp.dest('demo/public'));
 });
@@ -73,4 +73,4 @@ gulp.task('default', function spitHelp (done) {
 });
 
 gulp.task('build', ['js', 'sass']);
-gulp.task('dev', ['js', 'sass', 'copy', 'serve', 'watch']);
+gulp.task('dev', ['js', 'sass', 'copyDist', 'serve', 'watch']);
